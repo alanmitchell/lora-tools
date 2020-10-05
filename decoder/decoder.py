@@ -30,6 +30,9 @@ def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
     # All of the field keys returned start with the "[device EUI]_"
     # Use Python F-strings to create these keys.
 
+    # For the lht65 and Elsys decoder functions, convert Temperature values to degrees F
+    # instead of the degrees C that comes out of the Javascript version of the functions.
+
 
 def decode_lht65(payload: bytes) -> Dict[str, float]:
     """Decoder function for LHT65 sensor.
