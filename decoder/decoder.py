@@ -11,13 +11,17 @@ def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
     format.
     """
 
+    # the dictionary that will hold the decoded results
+    results = {}
+
     # Go here to learn about the format of an HTTP Integration Uplink coming from the Things
     # network:  https://www.thethingsnetwork.org/docs/applications/http/
     device_id = integration_payload['dev_id']
     device_eui = integration_payload['hardware_serial']
     payload = base64.b64decode(integration_payload['payload_raw'])  # is a list of bytes now
 
-    # extract out the SNR and RSSI just as was done here:
+    # extract out the SNR and RSSI and put them in the results dictionary, just as was done
+    # here:
     # https://github.com/alanmitchell/bmon/blob/4a2509c497f4364c17c9257e30cf0976569b5ebb/bmsapp/views.py#L297
 
     # dispatch to the right decoding function based on characters in the device_id.
@@ -33,6 +37,7 @@ def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
     # For the lht65 and Elsys decoder functions, convert Temperature values to degrees F
     # instead of the degrees C that comes out of the Javascript version of the functions.
 
+    return results
 
 def decode_lht65(payload: bytes) -> Dict[str, float]:
     """Decoder function for LHT65 sensor.
