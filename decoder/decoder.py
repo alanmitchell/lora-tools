@@ -5,7 +5,7 @@ from typing import Dict, Any
 import base64
 
 def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
-    """Returns a dictionary of enginerring values, keyed on field name that
+    """Returns a dictionary of engineering values, keyed on field name that
     is decoded from 'integration_payload'.  'integration_payload' is the data
     payload that is sent by a Things Network HTTP integration, in Python dictionary
     format.
