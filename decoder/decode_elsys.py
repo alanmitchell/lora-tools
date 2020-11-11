@@ -15,7 +15,7 @@ def bin8dec(bin: int) -> int:
     num = bin & 0xFF
     return -(0x0100 - num) if (0x80 & num) else num
 
-def decode(data: bytes) -> Dict[str, float]:
+def decode(data: bytes) -> Dict[str, Any]:
     """Returns a dictionary of enginerring values decoded from an Elsys Uplink Payload.
     The payload 'data' is a byte array.
     Works with all Elsys LoRaWAN sensors.
@@ -25,80 +25,88 @@ def decode(data: bytes) -> Dict[str, float]:
     # holds the dictionary of results
     res = {}
 
-    def int16(ix):
+    def int16(ix: int) -> int:
         """Returns a 16-bit integer from the 2 bytes starting at index 'ix' in data byte array.
         """
         return (data[ix] << 8) | (data[ix + 1])
 
-    def temp(i):
+    # Each of the functions below decodes on sensor type.  The function access the 'data' byte
+    # array parameter from the enclosing 'decode' function.  The following functions also add
+    # key/value elements to the 'res' results dictionary.  Each function takes an index parameter,
+    # which is the index the 'data' array where the sensor data starts; although, the i position
+    # contains the sensor type indicator, so the actual data really starts at the i+1 position.
+    # Each of the functions returns the number of bytes consumed by the actual sensor data (not
+    # counting the 1 byte consumed by the sensor type identifier.)
+
+    def temp(i: int) -> int:
         # converts to Fahrenheit.
         temp = int16(i+1)
         temp = bin16dec(temp) / 10
         res['temperature'] = temp * 1.8 + 32.0
         return 2
 
-    def rh(i):
+    def rh(i: int) -> int:
         res['humidity'] = data[i + 1]
         return 1
 
-    def acc(i):
+    def acc(i: int) -> int:
         res['x'] = bin8dec(data[i + 1])
         res['y'] = bin8dec(data[i + 2])
         res['z'] = bin8dec(data[i + 3])
         return 3
 
-    def light(i):
+    def light(i: int) -> int:
         res['light'] = int16(i+1)
         return 2
 
-    def motion(i):
+    def motion(i: int) -> int:
         res['motion'] = (data[i + 1])
         return 1
 
-    def co2(i):
+    def co2(i: int) -> int:
         res['co2'] = int16(i+1)
         return 2
 
-    def vdd(i):
+    def vdd(i: int) -> int:
         res['vdd'] = int16(i+1)
         return 2
 
-    def analog1(i):
+    def analog1(i: int) -> int:
         res['analog1'] = int16(i+1)
         return 2
 
-    def gps(i):
+    def gps(i: int) -> int:
         res['lat'] = (data[i + 1] | data[i + 2] << 8 | data[i + 3] << 16 | (0xFF << 24 if data[i + 3] & 0x80 else 0)) / 10000
         res['long'] = (data[i + 4] | data[i + 5] << 8 | data[i + 6] << 16 | (0xFF << 24 if data[i + 6] & 0x80 else 0)) / 10000
         return 6
 
-    def pulse1(i):
+    def pulse1(i: int) -> int:
         res['pulse1'] = int16(i+1)
         return 2
 
-    def pulse1_abs(i):
+    def pulse1_abs(i: int) -> int:
         res['pulseAbs'] = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
         return 4
 
-    def ext_temp1(i):
+    def ext_temp1(i: int) -> int:
         temp = int16(i+1)
         temp = bin16dec(temp) / 10
         res['externalTemperature'] = temp * 1.8 + 32.0
         return 2
 
-    def ext_digital(i):
+    def ext_digital(i: int) -> int:
         res['digital'] = data[i + 1]
         return 1
 
-    def ext_distance(i):
+    def ext_distance(i: int) -> int:
         res['distance'] = int16(i+1)
         return 2
 
-    def acc_motion(i):
+    def acc_motion(i: int) -> int:
         res['accMotion'] = data[i + 1]
         return 1
 
-    def ir_temp(i):
+    def ir_temp(i: int) -> int:
         iTemp = int16(i+1)
         iTemp = bin16dec(iTemp)
         eTemp = int16(i + 3)
@@ -107,42 +115,42 @@ def decode(data: bytes) -> Dict[str, float]:
         res['irExternalTemperature'] = eTemp / 10 * 1.8 + 32.0
         return 4
 
-    def occupancy(i):
+    def occupancy(i: int) -> int:
         res['occupancy'] = data[i + 1]
         return 1
 
-    def waterleak(i):
+    def waterleak(i: int) -> int:
         res['waterleak'] = data[i + 1]
         return 1
 
-    def grideye(i):
+    def grideye(i: int) -> int:
         ref = data[i+1]
         res['grideye'] = [ref + data[i + 2 + j] / 10.0 for j in range(64)]
         return 64
 
-    def pressure(i):
+    def pressure(i: int) -> int:
         press = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
         res['pressure'] = press / 1000
         return 4
 
-    def sound(i):
+    def sound(i: int) -> int:
         res['soundPeak'] = data[i + 1]
         res['soundAvg'] = data[i + 2]
         return 2
 
-    def pulse2(i):
+    def pulse2(i: int) -> int:
         res['pulse2'] = int16(i+1)
         return 2
 
-    def pulse2_abs(i):
+    def pulse2_abs(i: int) -> int:
         res['pulseAbs2'] = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
         return 4
 
-    def analog2(i):
+    def analog2(i: int) -> int:
         res['analog2'] = int16(i+1)
         return 2
 
-    def ext_temp2(i):
+    def ext_temp2(i: int) -> int:
         temp = int16(i+1)
         temp = bin16dec(temp) / 10 * 1.8 + 32.0
         try:
@@ -160,11 +168,11 @@ def decode(data: bytes) -> Dict[str, float]:
         
         return 2
 
-    def ext_digital2(i):
+    def ext_digital2(i: int) -> int:
         res['digital2'] = data[i + 1]
         return 1
 
-    def ext_analog_uv(i):
+    def ext_analog_uv(i: int) -> int:
         res['analogUv'] = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
         return 4
 
@@ -190,3 +198,6 @@ def decode(data: bytes) -> Dict[str, float]:
         i += cur_decode_func(i) + 1
 
     return res
+
+if __name__ == '__main__':
+    print(decode(bytes.fromhex('0100e202290400270506060308070d62190001190002')))
