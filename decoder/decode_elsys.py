@@ -116,62 +116,65 @@ def decode(data: bytes) -> Dict[str, float]:
         return 1
 
     def grideye(i):
-        pass
+        ref = data[i+1]
+        res['grideye'] = [ref + data[i + 2 + j] / 10.0 for j in range(64)]
+        return 64
 
     def pressure(i):
-        pass
+        press = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
+        res['pressure'] = press / 1000
+        return 4
 
     def sound(i):
-        pass
+        res['soundPeak'] = data[i + 1]
+        res['soundAvg'] = data[i + 2]
+        return 2
 
     def pulse2(i):
-        pass
+        res['pulse2'] = int16(i+1)
+        return 2
 
     def pulse2_abs(i):
-        pass
+        res['pulseAbs2'] = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
+        return 4
 
     def analog2(i):
-        pass
+        res['analog2'] = int16(i+1)
+        return 2
 
     def ext_temp2(i):
-        pass
+        temp = int16(i+1)
+        temp = bin16dec(temp) / 10 * 1.8 + 32.0
+        try:
+            exist_rd =  res['externalTemperature2']
+            # there already is a Temperature 2 reading, 
+            if type(exist_rd) == list:
+                # the existing value is already a list of readings.  Append to it.
+                res['externalTemperature2'].append(temp)
+            else:
+                # one existing reading. make a list.
+                res['externalTemperature2'] = [exist_rd, temp]
+        except:
+            # this is the first External Temperature 2 reading.
+            res['externalTemperature2'] = temp
+        
+        return 2
 
     def ext_digital2(i):
-        pass
+        res['digital2'] = data[i + 1]
+        return 1
 
     def ext_analog_uv(i):
-        pass
+        res['analogUv'] = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4])
+        return 4
 
-    # maps a data type to a decoding function
-    decode_funcs = [
-        temp,
-        rh,
-        acc,
-        light,
-        motion,
-        co2,
-        vdd,
-        analog1,
-        gps,
-        pulse1,        
-        pulse1_abs,        
-        ext_temp1,        
-        ext_digital,
-        ext_distance,
-        acc_motion,
-        ir_temp,
-        occupancy,
-        waterleak,
-        grideye,
-        pressure,
-        sound,
-        pulse2,
-        pulse2_abs,
-        analog2,
-        ext_temp2,
-        ext_digital2,
-        ext_analog_uv,
-    ]
+    # list of deconding functions, in their type indicator order.
+    decode_funcs = [temp, rh, acc, light, motion, co2,
+        vdd, analog1, gps, pulse1, pulse1_abs, ext_temp1,
+        ext_digital, ext_distance, acc_motion, ir_temp,
+        occupancy, waterleak, grideye, pressure, sound,
+        pulse2, pulse2_abs, analog2, ext_temp2, ext_digital2,
+        ext_analog_uv]
 
     # make a dictionary that maps a sensor data type code to a decoding function
     decode_func_map = dict(zip(range(1, len(decode_funcs) + 1), decode_funcs))
@@ -181,8 +184,9 @@ def decode(data: bytes) -> Dict[str, float]:
     while i < len(data):
         # retrieve the correct decoding function for a sensor of this type
         cur_decode_func = decode_func_map[data[i]]
+        # the decoder function adds decoded values to the results dictionary, and it
+        # returns the number of bytes consumed by the decoded value.  Add 1 to account for the
+        # byte consumed the sensor type identifier.
         i += cur_decode_func(i) + 1
 
     return res
-
-print(decode(bytes.fromhex('0100e202290400270506060308070d62')))

@@ -30,6 +30,9 @@ def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
 
     # Use the dictionry update function to add in the results from the decoder into the
     # dictionary you started above.
+    # ** If a returned value is a List, convert it to indidual elements by adding underscore element
+    # index to the key name 
+    # **
 
     # All of the field keys returned start with the "[device EUI]_"
     # Use Python F-strings to create these keys.
