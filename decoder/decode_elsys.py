@@ -2,24 +2,20 @@
 See Javascript Elsys decoder at:  https://www.elsys.se/en/elsys-payload/
 """
 from typing import Dict, Any
-
-def bin16dec(bin: int) -> int:
-    """Returns twos complement value from a 16-bit integer
-    """
-    num = (bin & 0xFFFF)
-    return -(0x010000 - num) if (0x8000 & num) else num
-
-def bin8dec(bin: int) -> int:
-    """Return twos complement value from an 8-bit integer
-    """
-    num = bin & 0xFF
-    return -(0x0100 - num) if (0x80 & num) else num
+from .decode_utils import bin16dec, bin8dec
 
 def decode(data: bytes) -> Dict[str, Any]:
     """Returns a dictionary of enginerring values decoded from an Elsys Uplink Payload.
     The payload 'data' is a byte array.
     Works with all Elsys LoRaWAN sensors.
     Converts temperatures to Fahrenheit instead of Celsius like the original Elsys decoder.
+    All millivolt Voltage values are now in Volts instead of the original millivolts from Elsys.
+    (the uVolt sensor type was left in microvolts).
+    Changes some of the names of the results keys from the original Elsys names:
+    shortens "external" to "ext", "internal" to "int".
+    Also, made two channel naming more consistent: first channel name does *not* input a "1"
+    at the end, but the second channel of name includes a "2".  This also keeps name consistent
+    with sensors that don't have a second channel, like the ELT Lite and the LHT65.
     """
 
     # holds the dictionary of results
@@ -30,7 +26,7 @@ def decode(data: bytes) -> Dict[str, Any]:
         """
         return (data[ix] << 8) | (data[ix + 1])
 
-    # Each of the functions below decodes on sensor type.  The function access the 'data' byte
+    # Each of the functions below decodes one sensor type.  The function access the 'data' byte
     # array parameter from the enclosing 'decode' function.  The following functions also add
     # key/value elements to the 'res' results dictionary.  Each function takes an index parameter,
     # which is the index the 'data' array where the sensor data starts; although, the i position
@@ -68,11 +64,13 @@ def decode(data: bytes) -> Dict[str, Any]:
         return 2
 
     def vdd(i: int) -> int:
-        res['vdd'] = int16(i+1)
+        # changed from Elsys, result is in Volts not millivolts
+        res['vdd'] = int16(i+1) / 1000.
         return 2
 
     def analog1(i: int) -> int:
-        res['analog1'] = int16(i+1)
+        # changed from Elsys, result is in Volts not millivolts
+        res['analog'] = int16(i+1) / 1000.
         return 2
 
     def gps(i: int) -> int:
@@ -81,7 +79,7 @@ def decode(data: bytes) -> Dict[str, Any]:
         return 6
 
     def pulse1(i: int) -> int:
-        res['pulse1'] = int16(i+1)
+        res['pulse'] = int16(i+1)
         return 2
 
     def pulse1_abs(i: int) -> int:
@@ -91,7 +89,7 @@ def decode(data: bytes) -> Dict[str, Any]:
     def ext_temp1(i: int) -> int:
         temp = int16(i+1)
         temp = bin16dec(temp) / 10
-        res['externalTemperature'] = temp * 1.8 + 32.0
+        res['extTemperature'] = temp * 1.8 + 32.0
         return 2
 
     def ext_digital(i: int) -> int:
@@ -111,8 +109,8 @@ def decode(data: bytes) -> Dict[str, Any]:
         iTemp = bin16dec(iTemp)
         eTemp = int16(i + 3)
         eTemp = bin16dec(eTemp)
-        res['irInternalTemperature'] = iTemp / 10 * 1.8 + 32.0
-        res['irExternalTemperature'] = eTemp / 10 * 1.8 + 32.0
+        res['irIntTemperature'] = iTemp / 10 * 1.8 + 32.0
+        res['irExtTemperature'] = eTemp / 10 * 1.8 + 32.0
         return 4
 
     def occupancy(i: int) -> int:
@@ -147,24 +145,25 @@ def decode(data: bytes) -> Dict[str, Any]:
         return 4
 
     def analog2(i: int) -> int:
-        res['analog2'] = int16(i+1)
+        # changed from Elsys, result is in Volts not millivolts
+        res['analog2'] = int16(i+1) / 1000.
         return 2
 
     def ext_temp2(i: int) -> int:
         temp = int16(i+1)
         temp = bin16dec(temp) / 10 * 1.8 + 32.0
         try:
-            exist_rd =  res['externalTemperature2']
+            exist_rd =  res['extTemperature2']
             # there already is a Temperature 2 reading, 
             if type(exist_rd) == list:
                 # the existing value is already a list of readings.  Append to it.
-                res['externalTemperature2'].append(temp)
+                res['extTemperature2'].append(temp)
             else:
                 # one existing reading. make a list.
-                res['externalTemperature2'] = [exist_rd, temp]
+                res['extTemperature2'] = [exist_rd, temp]
         except:
             # this is the first External Temperature 2 reading.
-            res['externalTemperature2'] = temp
+            res['extTemperature2'] = temp
         
         return 2
 
@@ -199,5 +198,11 @@ def decode(data: bytes) -> Dict[str, Any]:
 
     return res
 
-if __name__ == '__main__':
-    print(decode(bytes.fromhex('0100e202290400270506060308070d62190001190002')))
+def test():
+    results = decode(bytes.fromhex('0100e202290400270506060308070d6219000119FFFF'))
+    print(results)
+    assert results == {'temperature': 72.68, 'humidity': 41, 'light': 39, 'motion': 6, 'co2': 776, 'vdd': 3.426, 'extTemperature2': [32.18, 31.82]}
+
+if __name__ == "__main__":
+    # To run this without import error, need to run "python -m decoder.decode_elsys" from the top level directory.
+    test()

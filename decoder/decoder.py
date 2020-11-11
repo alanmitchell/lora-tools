@@ -3,6 +3,8 @@ dictionary.
 """
 from typing import Dict, Any
 import base64
+from . import decode_elsys
+from . import decode_lht65
 
 def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
     """Returns a dictionary of engineering values, keyed on field name that
@@ -41,17 +43,3 @@ def decode(integration_payload: Dict[str, Any]) -> Dict[str, float]:
     # instead of the degrees C that comes out of the Javascript version of the functions.
 
     return results
-
-def decode_lht65(payload: bytes) -> Dict[str, float]:
-    """Decoder function for LHT65 sensor.
-    Go here for the Javascript decoder:  http://www.dragino.com/downloads/downloads/LHT65/payload_decode/ttn_payload_decode.txt
-    Here for the User Manual:  http://www.dragino.com/downloads/index.php?dir=LHT65/UserManual/
-    """
-    pass
-
-def decode_elsys(payload: bytes) -> Dict[str, float]:
-    """Decoder function for Elsys sensors.
-    Go here to find the Javascript version of a decoder, and to find an online calculator
-    that implements the decoding:  https://www.elsys.se/en/elsys-payload/
-    """
-    pass
