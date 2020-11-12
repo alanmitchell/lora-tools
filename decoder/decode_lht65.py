@@ -8,6 +8,7 @@ def decode(data: bytes) -> Dict[str, Any]:
     """Returns a dictionary of enginerring values decoded from a Dragino LHT65 Uplink Payload.
     The payload 'data' is a byte array.
     Converts temperatures to Fahrenheit instead of Celsius like the original Dragino decoder.
+    Kept naming of results elements consistent with the Elsys decoder.
     """
 
     # holds the dictionary of results
@@ -85,6 +86,11 @@ def decode(data: bytes) -> Dict[str, Any]:
 def test():
     cases = (
         ('CBF60B0D0376010ADD7FFF', {'temperature': 82.922, 'humidity': 88.6, 'vdd': 3.062, 'extTemperature': 82.05799999999999}),
+        ('CB040B55025A0401007FFF', {'temperature': 84.218, 'humidity': 60.2, 'vdd': 2.82, 'digital': 1, 'interrupt': 0}),
+        ('CB060B5B02770400017FFF', {'temperature': 84.326, 'humidity': 63.1, 'vdd': 2.822, 'digital': 0, 'interrupt': 1}),
+        ('CB030B2D027C0501917FFF', {'temperature': 83.49799999999999, 'humidity': 63.6, 'vdd': 2.819, 'light': 401}),
+        ('CB0B0B640272060B067FFF', {'temperature': 84.488, 'humidity': 62.6, 'vdd': 2.827, 'analog': 2.822}),
+        ('CBD50B0502E60700067FFF', {'temperature': 82.778, 'humidity': 74.2, 'vdd': 3.029, 'pulse': 6}),
     )
     for dta, result in cases:
         res = decode(bytes.fromhex(dta))
@@ -92,4 +98,5 @@ def test():
         assert res == result
 
 if __name__ == '__main__':
+    # To run this without import error, need to run "python -m decoder.decode_lht65" from the top level directory.
     test()
