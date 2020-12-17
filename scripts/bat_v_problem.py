@@ -14,7 +14,7 @@ def int16(ix: int) -> int:
 
 subprocess.run("./get_data.sh", shell=True)
 ct = 0
-for lin in open('lt22222.txt'):
+for lin in open('lt22222.json'):
     rec = json.loads(lin.strip())
     data = base64.b64decode(rec['payload_raw'])
     v1 = int16(0)
