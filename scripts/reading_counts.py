@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Creates a heat map showing reading counts per hour for selected sensors.
 Depends on a 
 """
@@ -51,7 +53,7 @@ fig.update_layout(
     title='Readings per Hour',
     xaxis_nticks=48,
     width=1000,
-    height=400,
+    height = 150 + len(DEVICES) * 50,
 )
 
 fig.show()
