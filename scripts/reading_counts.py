@@ -46,7 +46,8 @@ fig = go.Figure(data=go.Heatmap(
         z=df_cts.values.transpose(),
         x=df_cts.index,
         y=df_cts.columns,
-        colorscale='RdYlGn')
+        colorscale='RdYlGn',
+        zmid=10)
         )
 
 fig.update_layout(
