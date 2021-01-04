@@ -14,6 +14,20 @@ dev_lbls = dict(
     A8404175D1822CA7 = 'Peter LHT65 2CA7',
 )
 
+# Maps Device ID to Label
+dev_id_lbls = {
+    'boat-lt2-a8404137b182428e': 'Phil LT22222 428E',
+    'ers-a81758fffe04259e': 'Alan ERS 259E',
+    'ersco2-a81758fffe0526d8': 'Phil CO2 26D8',
+    'elt-2_a81758fffe053692': 'Phil ELT-2 3692',
+    'lht65-a8404173e1822ca4': 'Alan LHT65 2CA4',
+    'elt-a81758fffe0523db': 'Tyler ELT-Lite 23DB',
+    'boat-lt2-a84041552182436a': 'Phil LT22222 436A',
+    'lht65-a8404175d1822ca7': 'Peter LHT65 2CA7',
+    'boat-lt2-a840417f8182436e': 'Phil LT22222 436E',
+    'boat-lt2-a84041599182436c': 'Phil LT22222 436C',
+}
+
 # Maps Gateway IDs to a Label
 gtw_lbls = {
     'eui-00800000a00034ed': 'Kasilof',
@@ -28,5 +42,5 @@ gtw_lbls = {
     'eui-000080029c2b2b77': 'Bear Valley',
     'eui-a84041ffff1ee2b4': 'Dragino Outdoor',
     'eui-a840411eed744150': 'Phil Home',
-    'eui-58a0cbfffe802c68': "Phil's TIG #1"
+    'eui-58a0cbfffe802c68': "Altermatt TIG"
 }

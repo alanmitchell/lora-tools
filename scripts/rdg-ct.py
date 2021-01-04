@@ -4,46 +4,66 @@
 """
 
 # %%
-DAYS_TO_SHOW = 4
 DEVICES = (
     'Phil ELT-2 3692',
-    #'Phil LT22222 428E',
     'Phil LT22222 436E',
     'Phil CO2 26D8',
 )
 
-import json
 from datetime import datetime, timedelta
-import pytz
+import subprocess
 import pandas as pd
-import plotly.graph_objects as go
 from dateutil.parser import parse
 from dateutil import tz
 from rich import print
-from label_map import dev_lbls
+import questionary
+from label_map import dev_id_lbls, gtw_lbls
 
-start_ts = datetime.now(pytz.utc) - timedelta(days=DAYS_TO_SHOW)
-recs = []
+print()
+refresh = questionary.confirm("Download new Data?").ask()
+if refresh:
+    subprocess.run("./gateways_get.sh", shell=True)
+
+days_to_show = int(questionary.text("How many days to Show?", default='4').ask())
+
 tz_ak = tz.gettz('US/Alaska')
-for lin in open('lora.json'):
-    rec = json.loads(lin)
-    ts = parse(rec['metadata']['time'])
-    device = dev_lbls.get(rec['hardware_serial'], rec['hardware_serial'])
-    if ts > start_ts and device in DEVICES:
-        ts_ak = ts.astimezone(tz_ak)
-        recs.append(dict(ts = ts_ak, device=device))
+start_ts = (datetime.now(tz_ak) - timedelta(days=days_to_show)).replace(tzinfo=None)
 
-df = pd.DataFrame(recs)
-df.set_index('ts', inplace=True)
+df = pd.read_csv('gateways.tsv', 
+    sep='\t', 
+    parse_dates=['ts', 'ts_hour'],
+    index_col='ts')
+df = df.loc[str(start_ts):]
+df['dev_id'] = df.dev_id.map(dev_id_lbls)
+df.query('dev_id in @DEVICES', inplace=True)
 
-df['readings'] = 1
-df_cts = df.pivot(columns='device', values='readings')
+def gtw_map(gtw_eui):
+    return gtw_lbls.get(gtw_eui, gtw_eui)
 
-df_cts = df_cts.resample('1H').sum()
-df_cts.where(df_cts <= 12, 12, inplace=True)
-df_cts = df_cts[1:-1]                  # take out first and last hour
-# %%
-df_cts.tail(30)
+df['gateway'] = df.gateway.map(gtw_map)
+
+gtws = df.gateway.unique()
+# filter gateway here, if requested
+gtw_incl = questionary.select("Gateways to Include:", choices=['All']+list(gtws)).ask()
+if gtw_incl != 'All':
+    df.query('gateway == @gtw_incl', inplace=True)
+
+df = df[['ts_hour', 'dev_id', 'counter']].reset_index()
+df.drop_duplicates(inplace=True)
+df.drop(columns='ts', inplace=True)
+#df.groupby(['ts_hour', 'dev_id']).count()
+df2 = df.groupby(['ts_hour', 'dev_id']).count().reset_index()
+df_cts = df2.pivot(index='ts_hour', columns='dev_id', values='counter')
+
+# Make a new index that fills in any missing hours
+new_ix = pd.date_range(df_cts.index[0], df_cts.index[-1], freq='1H')
+df_cts = df_cts.reindex(new_ix)
+
+# Fill NaNs with 0
+df_cts.fillna(0, inplace=True)
+
+# drop first and last hour
+df_cts = df_cts[1:-1]
 
 # %%
 # Color Scale built from https://hihayk.github.io/
