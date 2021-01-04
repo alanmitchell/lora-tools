@@ -1,6 +1,8 @@
 *.txt
 *.json
 *.tsv
+*.csv
+*.vd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
