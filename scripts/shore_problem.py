@@ -11,7 +11,7 @@ def int16(ix: int) -> int:
     """
     return (data[ix] << 8) | (data[ix + 1])
 
-ct = 0
+bad_ct = 0
 for lin in open('shore.json'):
     rec = json.loads(lin.strip())
     data = base64.b64decode(rec['payload_raw'])
@@ -25,4 +25,6 @@ for lin in open('shore.json'):
             bad_data = True
         if bad_data:
             print('***', end='')
-        print(f"V1: {rec['metadata']['time']} {v1:.3f} {v2:.3f}")
+            bad_ct += 1
+        print(f"{rec['metadata']['time']} V1: {v1:.3f}, V2:{v2:.3f}")
+print(f'Number of Bad Readings: {bad_ct}')
