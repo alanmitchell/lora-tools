@@ -10,22 +10,35 @@ DEVICES = (
     'Phil CO2 26D8',
 )
 
+# Color Scale built from https://hihayk.github.io/
+color_scale = {
+    12: '#41930E',
+    11: '#6FB50B',
+    10: '#AED906',
+    9: '#FFFF00',
+    8: '#FFC614',
+    7: '#FF8429',
+    6: '#FF403D',
+}
+
 from datetime import datetime, timedelta
 import subprocess
 import pandas as pd
 from dateutil.parser import parse
 from dateutil import tz
 from rich import print
+from rich.markdown import Markdown
 import questionary
 from label_map import dev_id_lbls, gtw_lbls
 
 print()
 refresh = questionary.confirm("Download new Data?").ask()
+#refresh = False
 if refresh:
     subprocess.run("./gateways_get.sh", shell=True)
 
 days_to_show = int(questionary.text("How many days to Show?", default='4').ask())
-
+#days_to_show = 2
 tz_ak = tz.gettz('US/Alaska')
 start_ts = (datetime.now(tz_ak) - timedelta(days=days_to_show)).replace(tzinfo=None)
 
@@ -43,50 +56,44 @@ def gtw_map(gtw_eui):
 df['gateway'] = df.gateway.map(gtw_map)
 
 gtws = df.gateway.unique()
+gtw_choices = ['Any'] + list(gtws)
 # filter gateway here, if requested
-gtw_incl = questionary.select("Gateways to Include:", choices=['All']+list(gtws)).ask()
-if gtw_incl != 'All':
-    df.query('gateway == @gtw_incl', inplace=True)
-
-df = df[['ts_hour', 'dev_id', 'counter']].reset_index()
-df.drop_duplicates(inplace=True)
-df.drop(columns='ts', inplace=True)
-#df.groupby(['ts_hour', 'dev_id']).count()
-df2 = df.groupby(['ts_hour', 'dev_id']).count().reset_index()
-df_cts = df2.pivot(index='ts_hour', columns='dev_id', values='counter')
-
-# Make a new index that fills in any missing hours
-new_ix = pd.date_range(df_cts.index[0], df_cts.index[-1], freq='1H')
-df_cts = df_cts.reindex(new_ix)
-
-# Fill NaNs with 0
-df_cts.fillna(0, inplace=True)
-
-# drop first and last hour
-df_cts = df_cts[1:-1]
-
-# %%
-# Color Scale built from https://hihayk.github.io/
-color_scale = {
-    12: '#41930E',
-    11: '#6FB50B',
-    10: '#AED906',
-    9: '#FFFF00',
-    8: '#FFC614',
-    7: '#FF8429',
-    6: '#FF403D',
-}
-
+#gtw_incl = questionary.select("Gateways to Include:", choices=gtw_choices).ask()
 print('\nNumber of Missed Readings in the Hour:\n')
-for c in df_cts.columns:
-    print(f'{c:20}', end='')
-    vals = df_cts[c].values
-    for val in vals:
-        val_key = min(12, max(6, val))
-        color = color_scale[val_key]
-        val_print = ' ' if val_key==12 else int(12 - val) if val >= 3 else '+'
-        #val_print = ' '
-        print(f"[#000000 on {color}]{val_print}[/]", end='')
+for gtw_incl in gtw_choices:
+    if gtw_incl != 'Any':
+        dfg = df.query('gateway == @gtw_incl').copy()
+    else:
+        dfg = df.copy()
+    
+    print(Markdown('---'))
+    print(f'Gateway: {gtw_incl}')
     print()
+
+    dfg = dfg[['ts_hour', 'dev_id', 'counter']].reset_index()
+    dfg.drop_duplicates(inplace=True)
+    dfg.drop(columns='ts', inplace=True)
+    df2 = dfg.groupby(['ts_hour', 'dev_id']).count().reset_index()
+    df_cts = df2.pivot(index='ts_hour', columns='dev_id', values='counter')
+
+    # Make a new index that fills in any missing hours
+    new_ix = pd.date_range(df_cts.index[0], df_cts.index[-1], freq='1H')
+    df_cts = df_cts.reindex(new_ix)
+
+    # Fill NaNs with 0
+    df_cts.fillna(0, inplace=True)
+
+    # drop first and last hour
+    df_cts = df_cts[1:-1]
+
+    for c in df_cts.columns:
+        print(f'{c:20}', end='')
+        vals = df_cts[c].values
+        for val in vals:
+            val_key = min(12, max(6, val))
+            color = color_scale[val_key]
+            val_print = ' ' if val_key==12 else int(12 - val) if val >= 3 else '+'
+            #val_print = ' '
+            print(f"[#000000 on {color}]{val_print}[/]", end='')
+        print()
 print()
-# %%
