@@ -16,5 +16,6 @@ for lin in open('shore.json'):
     rec = json.loads(lin.strip())
     data = base64.b64decode(rec['payload_raw'])
     v1 = int16(0) / 1000.
-    if rec['metadata']['time'] > '2020-12-29T00:00:00':
-        print(f"V1: {rec['metadata']['time']} {v1:.4f}")
+    v2 = int16(2) / 1000.
+    if rec['metadata']['time'] > '2021-01-05T00:00:00':
+        print(f"V1: {rec['metadata']['time']} {v1:.3f} {v2:.3f}")
