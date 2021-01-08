@@ -20,11 +20,12 @@ for lin in open('shore.json'):
     v1 = int16(0) / 1000.
     v2 = int16(2) / 1000.
     ts = rec['metadata']['time']
-    if ts > '2021-01-08T06:26:08':
+    #if ts > '2021-01-01T16:33:00':
+    if ts > '2021-01-08T16:33:00':
         bad_data = False
-        if abs(v2-0.579) > 0.02:
+        if abs(v1-0.579) > 0.02:
             bad_data = True
-        if abs(v1 - 11.88) > 0.1:
+        if abs(v2 - 11.92) > 0.1:
             bad_data = True
         if bad_data:
             print('***', end='')
