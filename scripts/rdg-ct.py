@@ -69,7 +69,6 @@ for gtw_incl in gtw_choices:
     else:
         dfg = df.copy()
     
-    print(Markdown('---'))
     print(f'Gateway: {gtw_incl}')
     print()
 
@@ -92,12 +91,15 @@ for gtw_incl in gtw_choices:
 
     for c in df_cts.columns:
         print(f'{c:20}', end='')
-        vals = df_cts[c].values
-        for val in vals:
+        for ts, val in df_cts[c].iteritems():
+            if ts.hour == 0:
+                print(' ', end='')
             val_key = min(12, max(6, val))
             color = color_scale[val_key]
             val_print = ' ' if val_key==12 else int(12 - val) if val >= 3 else '+'
-            #val_print = ' '
             print(f"[#000000 on {color}]{val_print}[/]", end='')
         print()
+
+    print(Markdown('---\n\n'))
+
 print()
