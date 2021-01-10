@@ -40,7 +40,10 @@ if refresh:
 days_to_show = int(questionary.text("How many days to Show?", default='4').ask())
 #days_to_show = 2
 tz_ak = tz.gettz('US/Alaska')
-start_ts = (datetime.now(tz_ak) - timedelta(days=days_to_show)).replace(tzinfo=None)
+start_ts = (datetime.now(tz_ak) - timedelta(days=days_to_show)).replace(
+    tzinfo=None, minute=0, second=0, microsecond=0)
+end_ts = datetime.now(tz_ak).replace(
+    tzinfo=None, minute=0, second=0, microsecond=0)
 
 df = pd.read_csv('gateways.tsv', 
     sep='\t', 
@@ -77,14 +80,15 @@ for gtw_incl in gtw_choices:
     df_cts = df2.pivot(index='ts_hour', columns='dev_id', values='counter')
 
     # Make a new index that fills in any missing hours
-    new_ix = pd.date_range(df_cts.index[0], df_cts.index[-1], freq='1H')
+    #new_ix = pd.date_range(df_cts.index[0], df_cts.index[-1], freq='1H')
+    new_ix = pd.date_range(start_ts, end_ts, freq='1H')
     df_cts = df_cts.reindex(new_ix)
 
     # Fill NaNs with 0
     df_cts.fillna(0, inplace=True)
 
-    # drop first and last hour
-    df_cts = df_cts[1:-1]
+    # drop last hour because likely a partial hour
+    df_cts = df_cts[:-1]
 
     for c in df_cts.columns:
         print(f'{c:20}', end='')
