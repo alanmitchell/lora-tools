@@ -40,7 +40,7 @@ gtw_lbls = {
     'kl4qh-mtcdt3': 'ANMC',
     'eui-24e124fffef06f56': 'Old Swd/Tudor',
     'eui-000080029c2b2b77': 'Bear Valley',
-    'eui-a84041ffff1ee2b4': 'Dragino Outdoor',
+    'eui-a84041ffff1ee2b4': 'Tyler Outdoor',
     'eui-a840411eed744150': 'Phil Home',
     'eui-58a0cbfffe802c68': "Altermatt TIG",
     'eui-58a0cbfffe80326e': 'Phil TIG',
