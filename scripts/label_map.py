@@ -38,7 +38,7 @@ gtw_lbls = {
     'eui-323531322b004500': 'Intl/C St',
     'eui-58a0cbfffe800baf': 'SEED Lab',
     'eui-58a0cbfffe8015fd': 'Tyler Indoor',
-    'eui-a840411d91b44150': 'Dragino LPS8',
+    'eui-a840411d91b44150': 'Alan Outdoor',
     'eui-c0ee40ffff293d87': 'Laird',
     'kl4qh-mtcdt3': 'ANMC',
     'eui-24e124fffef06f56': 'Old Swd/Tudor',
