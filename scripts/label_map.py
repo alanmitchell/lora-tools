@@ -26,6 +26,9 @@ dev_id_lbls = {
     'lht65-a8404175d1822ca7': 'Peter LHT65 2CA7',
     'boat-lt2-a840417f8182436e': 'Phil LT22222 436E',
     'boat-lt2-a84041599182436c': 'Phil LT22222 436C',
+    'erslite-a81758fffe05569d': '3148 E 19th, Anc',
+    'erslite-a81758fffe05569f': '3414 E 16th, Anc',
+    'erslite-a81758fffe0556a0': '3424 E 18th, Anc',
 }
 
 # Maps Gateway IDs to a Label

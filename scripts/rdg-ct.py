@@ -4,20 +4,29 @@
 """
 
 # %%
-DEVICES = (
-    'Phil ELT-2 3692',
-    'Phil LT22222 436E',
-    'Phil CO2 26D8',
-)
+# Groups of sensors:  GroupName: (max_reading_count, list of device IDs)
+DEVICE_GROUPS = {
+    'Seward': (12, (
+        'Phil ELT-2 3692',
+        'Phil LT22222 436E',
+        'Phil CO2 26D8',
+    )),
+    'Public Housing': (6, (
+        '3148 E 19th, Anc',
+        '3414 E 16th, Anc',
+        '3424 E 18th, Anc',
+    )),
+}
 
 # Color Scale built from https://hihayk.github.io/
+# key is number of readings missed in the hour.
 color_scale = {
-    12: '#41930E',
-    11: '#6FB50B',
-    10: '#AED906',
-    9: '#FFFF00',
-    8: '#FFC614',
-    7: '#FF8429',
+    0: '#41930E',
+    1: '#6FB50B',
+    2: '#AED906',
+    3: '#FFFF00',
+    4: '#FFC614',
+    5: '#FF8429',
     6: '#FF403D',
 }
 
@@ -31,14 +40,22 @@ from rich.markdown import Markdown
 import questionary
 from label_map import dev_id_lbls, gtw_lbls
 
+max_reading_count = 12    # maximum number of reads in one hour
+
 print()
 refresh = questionary.confirm("Download new Data?").ask()
 #refresh = False
 if refresh:
     subprocess.run("./gateways_get.sh", shell=True)
 
-days_to_show = int(questionary.text("How many days to Show?", default='4').ask())
-#days_to_show = 2
+device_group = questionary.select('Select Group of Sensors:', DEVICE_GROUPS.keys()).ask()
+max_reading_count, devices = DEVICE_GROUPS[device_group]
+
+days_to_show = int(questionary.select(
+    "How many days to Show?", 
+    choices=['1', '2', '3', '4'],
+    default='4').ask())
+
 tz_ak = tz.gettz('US/Alaska')
 start_ts = (datetime.now(tz_ak) - timedelta(days=days_to_show)).replace(
     tzinfo=None, minute=0, second=0, microsecond=0)
@@ -48,10 +65,11 @@ end_ts = datetime.now(tz_ak).replace(
 df = pd.read_csv('gateways.tsv', 
     sep='\t', 
     parse_dates=['ts', 'ts_hour'],
-    index_col='ts')
+    index_col='ts',
+    low_memory=False)
 df = df.loc[str(start_ts):]
 df['dev_id'] = df.dev_id.map(dev_id_lbls)
-df.query('dev_id in @DEVICES', inplace=True)
+df.query('dev_id in @devices', inplace=True)
 
 def gtw_map(gtw_eui):
     return gtw_lbls.get(gtw_eui, gtw_eui)
@@ -94,9 +112,10 @@ for gtw_incl in gtw_choices:
         for ts, val in df_cts[c].iteritems():
             if ts.hour == 0:
                 print(' ', end='')
-            val_key = min(12, max(6, val))
+            missed = max(0, int(max_reading_count - val))
+            val_key = min(6, missed)
             color = color_scale[val_key]
-            val_print = ' ' if val_key==12 else int(12 - val) if val >= 3 else '+'
+            val_print = ' ' if missed==0 else missed if missed < 10 else '+'
             print(f"[#000000 on {color}]{val_print}[/]", end='')
         print()
 
