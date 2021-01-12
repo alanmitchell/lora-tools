@@ -5,32 +5,27 @@ import base64
 import json
 from datetime import datetime
 import subprocess
+import pandas as pd
+
+DEVICE = 'boat-lt2-a8404137b182428e'
+START_DATE = '2021-01-12 08:42'
 
 def int16(ix: int) -> int:
     """Returns a 16-bit integer from the 2 bytes starting at index 'ix' in data byte array.
     """
     return (data[ix] << 8) | (data[ix + 1])
 
+df = pd.read_csv('values.tsv', sep='\t')
+dfs = df.query('dev_id == @DEVICE and ts > @START_DATE').copy()
 bad_ct = 0
+
 fout = open('shore.tsv', 'w')
 fout.write('ts\tv1\tv2\n')
-for lin in open('shore.json'):
-    rec = json.loads(lin.strip())
-    data = base64.b64decode(rec['payload_raw'])
+
+for ix, row in dfs.iterrows():
+    data = base64.b64decode(row['payload'])
+    ts = row['ts']
     v1 = int16(0) / 1000.
     v2 = int16(2) / 1000.
-    ts = rec['metadata']['time']
-    #if ts > '2021-01-01T16:33:00':
-    if ts > '2021-01-08T23:25:00':
-        bad_data = False
-        if abs(v1-5.1) > 0.05:
-            bad_data = True
-        if abs(v2 - 11.92) > 0.1:
-            bad_data = True
-        if bad_data:
-            print('***', end='')
-            bad_ct += 1
-        print(f"{ts} V1: {v1:.3f}, V2:{v2:.3f}")
-        fout.write(f'{ts}\t{v1}\t{v2}\n')
-fout.close()
-print(f'Number of Bad Readings: {bad_ct}')
+    print(f"{ts} V1: {v1:.3f}, V2: {v2:.3f}")
+    fout.write(f'{ts}\t{v1}\t{v2}\n')
