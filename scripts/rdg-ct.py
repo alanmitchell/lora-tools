@@ -15,6 +15,7 @@ DEVICE_GROUPS = {
         '3148 E 19th, Anc',
         '3414 E 16th, Anc',
         '3424 E 18th, Anc',
+        '122 N Bliss',
     )),
 }
 

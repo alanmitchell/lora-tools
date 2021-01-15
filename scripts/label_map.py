@@ -4,6 +4,7 @@
 # Maps Device EUI to a Label
 dev_lbls = dict(
     A81758FFFE0523DB = 'Tyler ELT-Lite 23DB',
+    A81758FFFE05368E = '122 N Bliss',
     A8404173E1822CA4 = 'Alan LHT65 2CA4',
     A81758FFFE04259E = 'Alan ERS 259E',
     A8404137B182428E = 'Phil LT22222 428E',
@@ -29,6 +30,7 @@ dev_id_lbls = {
     'erslite-a81758fffe05569d': '3148 E 19th, Anc',
     'erslite-a81758fffe05569f': '3414 E 16th, Anc',
     'erslite-a81758fffe0556a0': '3424 E 18th, Anc',
+    'elt2-a81758fffe05368e': '122 N Bliss',
 }
 
 # Maps Gateway IDs to a Label
