@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Creates a color bar chart showing missed readings per hour for selected sensors.
+"""Creates a color bar chart showing reading counts per hour for selected sensors.
 """
 
 # %%
@@ -20,16 +20,20 @@ DEVICE_GROUPS = {
 }
 
 # Color Scale built from https://hihayk.github.io/
-# key is number of readings missed in the hour.
+# key is number of readings in the hour.
 color_scale = {
-    0: '#41930E',
-    1: '#6FB50B',
-    2: '#AED906',
+    0: '#FF3131',
+    1: '#FF7F20',
+    2: '#FFC610',
     3: '#FFFF00',
-    4: '#FFC614',
-    5: '#FF8429',
-    6: '#FF403D',
 }
+
+color_scale = {
+    0: '#FF3131',
+    1: '#FFD822',
+    2: '#FFFF00',
+}
+
 
 from datetime import datetime, timedelta
 import subprocess
@@ -40,8 +44,6 @@ from rich import print
 from rich.markdown import Markdown
 import questionary
 from label_map import dev_id_lbls, gtw_lbls
-
-max_reading_count = 12    # maximum number of reads in one hour
 
 print()
 refresh = questionary.confirm("Download new Data?").ask()
@@ -81,7 +83,7 @@ gtws = df.gateway.unique()
 gtw_choices = ['Any'] + list(gtws)
 # filter gateway here, if requested
 #gtw_incl = questionary.select("Gateways to Include:", choices=gtw_choices).ask()
-print('\nNumber of Missed Readings in the Hour:\n')
+print('\nNumber of Readings in the Hour:\n')
 for gtw_incl in gtw_choices:
     if gtw_incl != 'Any':
         dfg = df.query('gateway == @gtw_incl').copy()
@@ -113,11 +115,12 @@ for gtw_incl in gtw_choices:
         for ts, val in df_cts[c].iteritems():
             if ts.hour == 0:
                 print(' ', end='')
-            missed = max(0, int(max_reading_count - val))
-            val_key = min(6, missed)
-            color = color_scale[val_key]
-            val_print = ' ' if missed==0 else missed if missed < 10 else '+'
-            print(f"[#000000 on {color}]{val_print}[/]", end='')
+            if val > max(color_scale.keys()):
+                prn_char = int(val) if val < 10 else '+'
+                print(f"[#BBBBBB on #FFFFFF]{prn_char}[/]", end='')
+            else:
+                color = color_scale[val]
+                print(f"[#000000 on {color}]{int(val)}[/]", end='')
         print()
 
     print(Markdown('---\n\n'))

@@ -6,14 +6,21 @@ import json
 from datetime import datetime
 import subprocess
 import pandas as pd
+import questionary
 
 DEVICE = 'boat-lt2-a8404137b182428e'
-START_DATE = '2021-01-12 08:42'
+START_DATE = '2021-01-13 10:24'
 
 def int16(ix: int) -> int:
     """Returns a 16-bit integer from the 2 bytes starting at index 'ix' in data byte array.
     """
     return (data[ix] << 8) | (data[ix + 1])
+
+print()
+refresh = questionary.confirm("Download new Data?").ask()
+#refresh = False
+if refresh:
+    subprocess.run("./values_get.sh", shell=True)
 
 df = pd.read_csv('values.tsv', sep='\t')
 dfs = df.query('dev_id == @DEVICE and ts > @START_DATE').copy()
