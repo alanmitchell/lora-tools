@@ -31,6 +31,7 @@ dev_id_lbls = {
     'erslite-a81758fffe05569f': '3414 E 16th, Anc',
     'erslite-a81758fffe0556a0': '3424 E 18th, Anc',
     'elt2-a81758fffe05368e': '122 N Bliss',
+    'elt2-a81758fffe05368f': '122 N Bliss Unit',
 }
 
 # Maps Gateway IDs to a Label
@@ -49,4 +50,5 @@ gtw_lbls = {
     'eui-a840411eed744150': 'Phil Home',
     'eui-58a0cbfffe802c68': "Altermatt TIG",
     'eui-58a0cbfffe80326e': 'Phil TIG',
+    'eui-a84041ffff1eb500': 'AHFC HQ Outdoor',
 }

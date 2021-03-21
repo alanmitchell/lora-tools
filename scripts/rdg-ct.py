@@ -71,6 +71,7 @@ df = pd.read_csv('gateways.tsv',
 df = df.loc[str(start_ts):]
 df['dev_id'] = df.dev_id.map(dev_id_lbls)
 df.query('dev_id in @devices', inplace=True)
+df.to_pickle('df.pickle')
 
 def gtw_map(gtw_eui):
     return gtw_lbls.get(gtw_eui, gtw_eui)
